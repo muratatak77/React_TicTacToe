@@ -2,18 +2,42 @@ import React from "react";
 import Board from "./Board";
 
 
+
 class Game extends React.Component {
 
   constructor(props){
     super(props);
     this.state = {
       history: [{
-        squares: Array(9).fill(null),
+        squares: Array(9).fill(null)
+        // squares: Array(3).fill(null).map(row => new Array(3).fill(null))
       }],
       stepNumber: 0,
       xIsNext: true,
+      cellsMap: new Map(),
+      cellVal: Array(1).fill(null),
     };
   }
+ 
+  componentDidMount() {
+    let cells = Array(3).fill(null).map(row => new Array(3).fill(null))
+    let cells_map = new Map();
+    let square = 0
+
+    for(var row = 0; row < cells.length; row++) {
+      for(var col = 0; col < cells[row].length; col++) {
+          cells_map.set(square ++ ,[row,col]);
+      }
+    }
+    console.log("Generate cells : ", cells)
+    console.log("Generate cells_map : ", cells_map)
+    this.state.history[0].location = cells_map
+   }
+
+  // def getCellsValue(i)
+  //   const cells_map = {0 : [0,0], }
+
+  // end
 
   // Why are we using immutable object :
   // Complex Features Become Simple
@@ -28,6 +52,8 @@ class Game extends React.Component {
       return;
     }
     squares[i] = this.state.xIsNext ? 'X':'O';
+    const cellval = this.state.history[0].location.get(i)
+
     // When you call setState in a component, React automatically updates the child components inside of it too.
     this.setState({
       // Unlike the array push() method you might be more familiar with, 
@@ -36,7 +62,8 @@ class Game extends React.Component {
         squares: squares,
       }]),
       stepNumber: history.length,
-      xIsNext: !this.state.xIsNext
+      xIsNext: !this.state.xIsNext,
+      cellVal: cellval,
     });
   }
 
@@ -47,15 +74,20 @@ class Game extends React.Component {
     });
   }
 
+  getCellValue(step){
+    console.log("step : ", step);
+    return this.state.cellsMap.get(step);
+  };
+
   render(){
 
     const history = this.state.history;
     const current = history[this.state.stepNumber];
     const winner = calculateWinner(current.squares);
-
+    
     // As we iterate through history array, step variable refers to the current history element value, and move refers to the current history element index. We are only interested in move here, hence step is not getting assigned to anything.
-    const moves = history.map((step, move) => {
-      const desc = move ? 'Go to move #' + move : 'Go to game start!';
+    const moves = history.map((step, move) => {      
+      let desc = move ? 'Go to move #' + move + "  - Cell : " + this.state.cellVal : 'Go to game start!';
       return (
         <li key={move}>
           <button onClick={() => this.jumpTo(move)}>{desc}</button>
